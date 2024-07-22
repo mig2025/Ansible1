@@ -1,0 +1,43 @@
+---
+- name: Install and configur Nginx 
+  hosts: nginx
+  gather_facts: true
+  become: true
+  vars_files:
+  - vars/main.yml
+  tasks:
+   - name: update
+     ansible.builtin.apt:
+      name: nginx
+      update_cache: true
+
+   - name: Install Nginx
+     ansible.builtin.apt:
+      name: nginx
+      state: latest
+     notify:
+      - restart nginx
+     tags:
+      - nginx-package
+
+   - name: Create NGINX config file from template
+     ansible.builtin.template:
+      src: ./templates/nginx.conf.j2
+      dest: /etc/nginx/nginx.conf
+     notify:
+      - reload nginx
+     tags:
+      - nginx-configuration
+
+  handlers:
+   - name: restart nginx
+     ansible.builtin.service:
+      name: ngxin
+      state: restarted
+      enabled: yes
+
+   - name: reload nginx
+     ansible.builtin.service:
+      name: nginx
+      state: reloaded
+...
